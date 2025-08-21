@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch & Earn - Video Earning Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+        }
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        .blink {
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .progress-bar {
+            height: 6px;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Login / Register</h3>
+                <button onclick="closeAuthModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="login-form">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Email</label>
+                    <input type="email" id="login-email" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Password</label>
+                    <input type="password" id="login-password" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <button onclick="login()" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 mb-3">Login</button>
+                <p class="text-center text-gray-600">Don't have an account? <a href="#" onclick="showRegisterForm()" class="text-blue-600 hover:underline">Register here</a></p>
+            </div>
+            <div id="register-form" class="hidden">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Full Name</label>
+                    <input type="text" id="register-name" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Email</label>
+                    <input type="email" id="register-email" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Password</label>
+                    <input type="password" id="register-password" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">UPI ID</label>
+                    <input type="text" id="register-upi" class="w-full px-3 py-2 border rounded-lg" placeholder="e.g. 1234567890@ybl">
+                </div>
+                <button onclick="register()" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 mb-3">Register</button>
+                <p class="text-center text-gray-600">Already have an account? <a href="#" onclick="showLoginForm()" class="text-blue-600 hover:underline">Login here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdrawal Modal -->
+    <div id="withdraw-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Withdraw Earnings</h3>
+                <button onclick="closeWithdrawModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Full Name</label>
+                <input type="text" id="withdraw-name" class="w-full px-3 py-2 border rounded-lg" disabled>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">UPI ID</label>
+                <input type="text" id="withdraw-upi" class="w-full px-3 py-2 border rounded-lg" disabled>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Amount (₹)</label>
+                <input type="number" id="withdraw-amount" class="w-full px-3 py-2 border rounded-lg" min="50" max="10000">
+                <p class="text-sm text-gray-500 mt-1">Minimum withdrawal: ₹50</p>
+            </div>
+            <button onclick="submitWithdrawal()" class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700">Request Withdrawal</button>
+        </div>
+    </div>
+
+    <!-- Payment Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md text-center">
+            <div class="text-green-500 text-5xl mb-4">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Payment Successful!</h3>
+            <p class="text-gray-600 mb-4">Your payment has been processed successfully.</p>
+            <button onclick="closeSuccessModal()" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Continue Watching</button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="bg-blue-600 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <img src="https://placehold.co/40" alt="Watch & Earn logo with golden coins and play button icon" class="rounded-full">
+                <h1 class="text-xl font-bold">Watch & Earn</h1>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="#" class="hover:text-blue-200">Home</a>
+                <a href="#" class="hover:text-blue-200">About</a>
+                <a href="#" class="hover:text-blue-200">How It Works</a>
+                <a href="#" class="hover:text-blue-200">Contact</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="auth-btn" onclick="showAuthModal()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50">Login / Register</button>
+                <button id="profile-btn" class="hidden bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 flex items-center space-x-2">
+                    <span id="user-name-display">User</span>
+                    <i class="fas fa-user-circle"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto p-4 mt-8">
+        <!-- Landing Page (Before Login) -->
+        <div id="landing-page">
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/2 mb-6 md:mb-0">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">Earn Money by Watching Videos</h2>
+                        <p class="text-gray-600 mb-6">Watch interesting videos daily and earn real money. Complete simple tasks and withdraw your earnings directly to your UPI account.</p>
+                        <button onclick="showAuthModal()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700">Start Earning Now</button>
+                    </div>
+                    <div class="md:w-1/2">
+                        <img src="https://placehold.co/600x400" alt="Happy young person watching videos on smartphone while earning money" class="rounded-lg shadow">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="text-blue-500 text-3xl mb-4">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Watch Videos</h3>
+                    <p class="text-gray-600">Watch 20 new videos every day and earn money for each view.</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="text-green-500 text-3xl mb-4">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Earn Money</h3>
+                    <p class="text-gray-600">Earn ₹0.50 to ₹2 for each video watched based on your level.</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="text-purple-500 text-3xl mb-4">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Withdraw Easily</h3>
+                    <p class="text-gray-600">Withdraw your earnings directly to your UPI account with just one click.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard (After Login) -->
+        <div id="dashboard" class="hidden">
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- Sidebar -->
+                <div class="md:w-1/4 bg-white rounded-lg shadow-lg p-4">
+                    <div class="flex items-center space-x-3 mb-6">
+                        <img src="https://placehold.co/60" alt="User profile avatar with circular border" class="rounded-full border-2 border-blue-500">
+                        <div>
+                            <h3 class="font-bold" id="sidebar-name">User Name</h3>
+                            <p class="text-sm text-gray-600" id="sidebar-email">user@example.com</p>
+                        </div>
+                    </div>
+                    <div class="mb-6 bg-blue-50 p-3 rounded-lg">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium text-blue-700">Account Balance</span>
+                            <span class="text-sm font-medium text-blue-700" id="sidebar-balance">₹0</span>
+                        </div>
+                        <div class="progress-bar w-full bg-gray-200 rounded-full h-1.5 mb-2">
+                            <div class="bg-blue-600 progress-bar rounded-full h-1.5" style="width: 0%"></div>
+                        </div>
+                        <p class="text-xs text-blue-600">Next bonus at ₹50</p>
+                    </div>
+                    <nav class="space-y-2">
+                        <a href="#" onclick="showDashboardContent('videos')" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 text-blue-600 font-medium">
+                            <i class="fas fa-play-circle"></i>
+                            <span>Watch Videos</span>
+                        </a>
+                        <a href="#" onclick="showDashboardContent('earnings')" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-rupee-sign"></i>
+                            <span>My Earnings</span>
+                        </a>
+                        <a href="#" onclick="showDashboardContent('withdraw')" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-wallet"></i>
+                            <span>Withdraw</span>
+                        </a>
+                        <a href="#" onclick="showDashboardContent('referral')" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Refer & Earn</span>
+                        </a>
+                        <a href="#" onclick="showDashboardContent('support')" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-headset"></i>
+                            <span>Support</span>
+                        </a>
+                        <a href="#" onclick="logout()" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- Main Content -->
+                <div class="md:w-3/4">
+                    <!-- Videos Content -->
+                    <div id="videos-content">
+                        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-xl font-bold">Watch Videos & Earn</h2>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-600">Daily limit:</span>
+                                    <span class="font-medium"><span id="videos-watched">0</span>/20</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="video-container">
+                                <!-- Videos will be dynamically inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Earnings Content -->
+                    <div id="earnings-content" class="hidden">
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h2 class="text-xl font-bold mb-6">My Earnings</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                                <div class="bg-blue-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-600 mb-1">Today's Earnings</p>
+                                    <p class="text-2xl font-bold" id="today-earnings">₹0</p>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-600 mb-1">Weekly Earnings</p>
+                                    <p class="text-2xl font-bold" id="weekly-earnings">₹0</p>
+                                </div>
+                                <div class="bg-purple-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-600 mb-1">Total Balance</p>
+                                    <p class="text-2xl font-bold" id="total-balance">₹0</p>
+                                </div>
+                            </div>
+                            <div class="border rounded-lg overflow-hidden">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200" id="earnings-history">
+                                        <!-- Earnings history will be inserted here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Withdraw Content -->
+                    <div id="withdraw-content" class="hidden">
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h2 class="text-xl font-bold mb-6">Withdraw Earnings</h2>
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle text-yellow-400"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-yellow-700">
+                                            Withdrawal requests are processed within 24 hours. Minimum withdrawal amount is ₹50.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div class="bg-blue-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-600 mb-1">Available Balance</p>
+                                    <p class="text-2xl font-bold" id="withdraw-balance">₹0</p>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-600 mb-1">Pending Withdrawal</p>
+                                    <p class="text-2xl font-bold" id="pending-withdrawal">₹0</p>
+                                </div>
+                            </div>
+                            <div class="bg-white border rounded-lg p-4 mb-6">
+                                <div class="flex justify-between mb-4">
+                                    <h3 class="font-medium">Recent Withdrawals</h3>
+                                    <button onclick="openWithdrawModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700">Request Withdrawal</button>
+                                </div>
+                                <div class="border rounded-lg overflow-hidden">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200" id="withdrawal-history">
+                                            <!-- Withdrawal history will be inserted here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="bg-gray-100 rounded-lg p-4">
+                                <h3 class="font-medium mb-2">Admin UPI Details</h3>
+                                <p class="text-gray-700 mb-1"><span class="font-medium">UPI ID:</span> 9257756171-2@ybl</p>
+                                <p class="text-xs text-gray-500">Send payment to this UPI ID only. Any other UPI is not authorized.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Referral Content -->
+                    <div id="referral-content" class="hidden">
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h2 class="text-xl font-bold mb-6">Refer & Earn</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <h3 class="font-medium mb-2">Your Referral Link</h3>
+                                    <div class="flex">
+                                        <input type="text" id="referral-link" class="flex-grow px-3 py-2 border rounded-l-lg" readonly value="https://watchearn.com/ref/abc123">
+                                        <button onclick="copyReferralLink()" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-600 mb-1">Total Referrals</p>
+                                    <p class="text-2xl font-bold" id="total-referrals">0</p>
+                                </div>
+                            </div>
+                            <div class="mb-6">
+                                <h3 class="font-medium mb-4">How It Works</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="bg-blue-50 rounded-lg p-4">
+                                        <div class="text-blue-500 text-xl mb-2">
+                                            <i class="fas fa-link"></i>
+                                        </div>
+                                        <h4 class="font-medium mb-1">1. Share Your Link</h4>
+                                        <p class="text-sm text-gray-600">Share your unique referral link with friends</p>
+                                    </div>
+                                    <div class="bg-green-50 rounded-lg p-4">
+                                        <div class="text-green-500 text-xl mb-2">
+                                            <i class="fas fa-user-plus"></i>
+                                        </div>
+                                        <h4 class="font-medium mb-1">2. Friend Signs Up</h4>
+                                        <p class="text-sm text-gray-600">Your friend registers using your link</p>
+                                    </div>
+                                    <div class="bg-purple-50 rounded-lg p-4">
+                                        <div class="text-purple-500 text-xl mb-2">
+                                            <i class="fas fa-rupee-sign"></i>
+                                        </div>
+                                        <h4 class="font-medium mb-1">3. You Earn ₹50</h4>
+                                        <p class="text-sm text-gray-600">When your friend watches their first video</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border rounded-lg overflow-hidden">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Joined</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bonus</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200" id="referral-history">
+                                        <!-- Referral history will be inserted here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Support Content -->
+                    <div id="support-content" class="hidden">
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <h2 class="text-xl font-bold mb-6">Support Center</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div class="bg-blue-50 rounded-lg p-6">
+                                    <h3 class="font-medium mb-4">Contact Support</h3>
+                                    <div class="space-y-4">
+                                        <div class="flex items-start space-x-3">
+                                            <div class="text-blue-500 mt-1">
+                                                <i class="fas fa-phone-alt"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium">WhatsApp Support</p>
+                                                <p class="text-gray-600">9694244521</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start space-x-3">
+                                            <div class="text-green-500 mt-1">
+                                                <i class="fas fa-envelope"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium">Email Support</p>
+                                                <p class="text-gray-600">bharatsharma925775@gmail.com</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start space-x-3">
+                                            <div class="text-purple-500 mt-1">
+                                                <i class="fab fa-instagram"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium">Instagram</p>
+                                                <p class="text-gray-600">student_helping.260</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-green-50 rounded-lg p-6">
+                                    <h3 class="font-medium mb-4">Admin Contact</h3>
+                                    <div class="space-y-4">
+                                        <div class="flex items-start space-x-3">
+                                            <div class="text-green-500 mt-1">
+                                                <i class="fas fa-envelope"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium">Admin Email</p>
+                                                <p class="text-gray-600">bharatsharma925775@gmail.com</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start space-x-3">
+                                            <div class="text-blue-500 mt-1">
+                                                <i class="fas fa-phone-alt"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium">Admin UPI</p>
+                                                <p class="text-gray-600">9257756171</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-6">
+                                <h3 class="font-medium mb-4">FAQ</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <button onclick="toggleFAQ('faq1')" class="flex justify-between items-center w-full text-left font-medium">
+                                            <span>How do I earn money on Watch & Earn?</span>
+                                            <i class="fas fa-chevron-down" id="faq1-icon"></i>
+                                        </button>
+                                        <div id="faq1" class="hidden mt-2 text-gray-600">
+                                            <p>Simply watch the videos available in your dashboard daily. You can watch up to 20 videos per day and earn between ₹0.50 to ₹2 per video depending on your level.</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button onclick="toggleFAQ('faq2')" class="flex justify-between items-center w-full text-left font-medium">
+                                            <span>When can I withdraw my earnings?</span>
+                                            <i class="fas fa-chevron-down" id="faq2-icon"></i>
+                                        </button>
+                                        <div id="faq2" class="hidden mt-2 text-gray-600">
+                                            <p>You can withdraw your earnings once you've reached the minimum withdrawal amount of ₹50. Withdrawal requests are processed within 24 hours.</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button onclick="toggleFAQ('faq3')" class="flex justify-between items-center w-full text-left font-medium">
+                                            <span>How do I increase my earnings?</span>
+                                            <i class="fas fa-chevron-down" id="faq3-icon"></i>
+                                        </button>
+                                        <div id="faq3" class="hidden mt-2 text-gray-600">
+                                            <p>You can increase your earnings by watching all your daily videos, referring friends (earn ₹50 per referral), and leveling up your account by consistent watching.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Watch & Earn</h3>
+                    <p class="text-gray-400">Earn money by watching interesting videos daily. Simple, fast and reliable.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">About Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">How It Works</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Support</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">FAQ</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Contact Us</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-center space-x-2">
+                            <i class="fas fa-envelope text-gray-400"></i>
+                            <span class="text-gray-400">bharatsharma925775@gmail.com</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i class="fab fa-whatsapp text-gray-400"></i>
+                            <span class="text-gray-400">9694244521</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i class="fab fa-instagram text-gray-400"></i>
+                            <span class="text-gray-400">student_helping.260</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border
